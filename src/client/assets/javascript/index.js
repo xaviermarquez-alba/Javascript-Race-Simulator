@@ -79,10 +79,9 @@ const saveStore = (store, state) => {
 
 // This async function controls the flow of the race, add the logic and error handling
 async function handleCreateRace() {
-    // Check for required data in store to run a race
     const { player_id, track_id, race_id } = store
 
-    if (!player_id || !track_id) {
+    if (!player_id || !track_id || !race_id) {
         alert('Required Player and Track missing')
         return
     }
@@ -95,16 +94,11 @@ async function handleCreateRace() {
             renderAt('#race', html)
         })
 
-        // The race has been created, now start the countdown
         await runCountdown()
-
         await startRace(store.race_id)
-
-        await runRace(store.race_id).catch((err) =>
-            console.log('not possible to run race!', err)
-        )
-    } catch (error) {
-        console.log(error)
+        await runRace(store.race_id).catch((err) => console.log('Error', err))
+    } catch (err) {
+        console.log('Error', err)
     }
 }
 
@@ -386,14 +380,12 @@ async function getRace(id) {
 }
 
 async function startRace(id) {
-    return fetch(`${SERVER}/api/races/${id}/start`, {
+    return await fetch(`${SERVER}/api/races/${id}/start`, {
         method: 'POST',
         ...defaultFetchOpts(),
+    }).catch((err) => {
+        throw new Error(`Error: startRace ${err.message}`)
     })
-        .then((res) => res.json())
-        .catch((err) => {
-            throw new Error(`Error: startRace ${err.message}`)
-        })
 }
 
 async function accelerate(id) {
